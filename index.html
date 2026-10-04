@@ -1,0 +1,784 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GFF TOURNAMENT HUB - Free Fire Esports Arena</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Firebase SDKs (Compat Version) -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&family=Teko:wght@700&display=swap');
+        body {
+            font-family: 'Hind Siliguri', sans-serif;
+            background-color: #0b0e14;
+            color: #e2e8f0;
+        }
+        .font-teko { font-family: 'Teko', sans-serif; }
+        .glass-box {
+            background: rgba(15, 23, 42, 0.75);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .btn-red-gradient {
+            background: linear-gradient(135deg, #ff4b5c, #ff2a3f);
+            box-shadow: 0 4px 15px rgba(255, 42, 63, 0.35);
+        }
+        .btn-red-gradient:hover {
+            background: linear-gradient(135deg, #ff2a3f, #e01e33);
+            box-shadow: 0 6px 20px rgba(255, 42, 63, 0.5);
+        }
+        .badge-cyan {
+            background: rgba(20, 184, 166, 0.15);
+            color: #2dd4bf;
+            border: 1px solid rgba(45, 212, 191, 0.3);
+        }
+        .marquee-container {
+            overflow: hidden;
+            white-space: nowrap;
+        }
+        .marquee-content {
+            display: inline-block;
+            animation: marquee 22s linear infinite;
+        }
+        @keyframes marquee {
+            0% { transform: translateX(100%); }
+            100% { transform: translateX(-100%); }
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between">
+
+    <!-- Header / Navbar -->
+    <header class="bg-[#0f172a]/90 backdrop-blur-md border-b border-gray-800 sticky top-0 z-40">
+        <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
+            <div class="flex items-center gap-2 cursor-pointer" onclick="switchTab('home')">
+                <i class="fa-solid fa-fire-flame-curved text-red-500 text-2xl"></i>
+                <span class="font-teko text-3xl font-bold tracking-wider text-white">GFF <span class="text-red-500">TOURNAMENT HUB</span></span>
+            </div>
+            
+            <div class="flex items-center gap-3">
+                <button onclick="switchTab('tracker')" class="bg-teal-500/10 text-teal-400 border border-teal-500/30 px-3 py-1.5 rounded-lg text-xs font-semibold hover:bg-teal-500 hover:text-black transition">
+                    <i class="fa-solid fa-ticket mr-1"></i> টিকিট / ট্র্যাকার
+                </button>
+                <button onclick="switchTab('rules')" class="bg-gray-800 text-gray-300 border border-gray-700 px-3 py-1.5 rounded-lg text-xs font-semibold hover:bg-gray-700 transition">
+                    <i class="fa-solid fa-book-open mr-1"></i> নিয়মাবলী
+                </button>
+                <button onclick="openAdminModal()" class="btn-red-gradient text-white px-3 py-1.5 rounded-lg text-xs font-bold transition">
+                    <i class="fa-solid fa-user-shield mr-1"></i> অ্যাডমিন
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Body Container -->
+    <main class="max-w-7xl mx-auto px-4 py-6 flex-grow w-full space-y-8">
+
+        <!-- TAB 1: HOME PAGE -->
+        <div id="tabHome" class="space-y-8">
+            
+            <!-- Hero Banner -->
+            <div class="glass-box rounded-2xl p-8 text-center relative overflow-hidden border border-gray-800">
+                <div class="absolute -top-24 -left-24 w-60 h-60 bg-red-600/10 rounded-full blur-3xl"></div>
+                <div class="absolute -bottom-24 -right-24 w-60 h-60 bg-teal-500/10 rounded-full blur-3xl"></div>
+                
+                <h1 class="font-teko text-5xl sm:text-6xl font-extrabold tracking-wider text-white uppercase mb-2">
+                    FREE FIRE ESPORTS ARENA
+                </h1>
+                <p class="text-gray-400 text-sm sm:text-base max-w-2xl mx-auto mb-6">
+                    আপনার স্কোয়াড নিয়ে অংশ নিন, সেরা গেমপ্লে দিয়ে জিতে নিন আকর্ষণীয় ক্যাশ প্রাইজ এবং ডায়মন্ড টপআপ!
+                </p>
+                
+                <a href="https://chat.whatsapp.com/E4F46rdd8dcB9hRc8ANn1w" target="_blank" class="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-6 py-2.5 rounded-full text-sm transition shadow-lg shadow-emerald-900/30">
+                    <i class="fa-brands fa-whatsapp text-lg"></i> অফিসিয়াল হোয়াটসঅ্যাপ গ্রুপে যুক্ত হন
+                </a>
+            </div>
+
+            <!-- Game Mode Toggle Buttons -->
+            <div class="flex justify-center">
+                <div class="bg-gray-900/90 p-1.5 rounded-xl border border-gray-800 flex gap-2">
+                    <button id="btnToggleBR" onclick="toggleMode('BR')" class="btn-red-gradient text-white px-6 py-2 rounded-lg text-xs font-bold transition">
+                        Battle Royale (BR)
+                    </button>
+                    <button id="btnToggleCS" onclick="toggleMode('CS')" class="text-gray-400 hover:text-white px-6 py-2 rounded-lg text-xs font-bold transition">
+                        Clash Squad (CS)
+                    </button>
+                </div>
+            </div>
+
+            <!-- Announcement Bar -->
+            <div class="glass-box rounded-xl p-3 text-xs flex flex-wrap items-center justify-between gap-4 border border-gray-800/80">
+                <div class="flex items-center gap-2">
+                    <i class="fa-solid fa-map-location-dot text-teal-400"></i>
+                    <span class="text-gray-400">ম্যাপ: <strong class="text-white">Bermuda / Purgatory</strong></span>
+                </div>
+                <div class="marquee-container flex-grow max-w-md">
+                    <div class="marquee-content text-amber-400 font-semibold">
+                        📣 সময়: অফিশিয়াল হোয়াটসঅ্যাপ গ্রুপে জানানো হবে | পেমেন্ট করার সময় অবশ্যই রেফারেন্সে ইউজারনেম লিখুন।
+                    </div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <i class="fa-solid fa-phone text-emerald-400"></i>
+                    <span class="text-gray-400">পেমেন্ট নম্বর: <strong class="text-emerald-400 font-mono">01976333372</strong></span>
+                </div>
+            </div>
+
+            <!-- BR Matches Container -->
+            <div id="sectionBR" class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="glass-card bg-[#0f172a]/80 rounded-2xl p-5 border border-gray-800 relative">
+                    <div class="flex justify-between items-center mb-3">
+                        <span class="badge-cyan text-[11px] font-bold px-2.5 py-0.5 rounded-md">BR SOLO</span>
+                        <span class="text-xs text-emerald-400 font-semibold"><i class="fa-solid fa-circle text-[8px] mr-1"></i>Registration Open</span>
+                    </div>
+                    <div class="space-y-1 text-xs text-gray-300 mb-4 border-b border-gray-800 pb-3">
+                        <div class="flex justify-between"><span class="text-gray-400">এন্ট্রি ফি:</span> <span class="font-bold text-amber-400">৳২০</span></div>
+                        <div class="flex justify-between"><span class="text-gray-400">প্রতি কিল প্রাইজ:</span> <span class="font-bold text-white">৳১০</span></div>
+                        <div class="flex justify-between"><span class="text-gray-400">বুইয়া বোনাস:</span> <span class="font-bold text-green-400">৳৫০</span></div>
+                        <div class="flex justify-between pt-1"><span class="text-gray-400">বুকড স্লট:</span> <span class="font-bold text-teal-400" id="brSoloCount">0/20</span></div>
+                    </div>
+                    <button id="btnBRSolo" onclick="openBookingModal('BR Solo', 20)" class="w-full btn-red-gradient text-white font-bold py-2 rounded-lg text-xs transition">
+                        রেজিস্ট্রেশন করুন
+                    </button>
+                </div>
+
+                <div class="glass-card bg-[#0f172a]/80 rounded-2xl p-5 border border-gray-800 relative">
+                    <div class="flex justify-between items-center mb-3">
+                        <span class="badge-cyan text-[11px] font-bold px-2.5 py-0.5 rounded-md">BR DUO</span>
+                        <span class="text-xs text-emerald-400 font-semibold"><i class="fa-solid fa-circle text-[8px] mr-1"></i>Registration Open</span>
+                    </div>
+                    <div class="space-y-1 text-xs text-gray-300 mb-4 border-b border-gray-800 pb-3">
+                        <div class="flex justify-between"><span class="text-gray-400">এন্ট্রি ফি:</span> <span class="font-bold text-amber-400">৳৫০</span></div>
+                        <div class="flex justify-between"><span class="text-gray-400">প্রতি কিল প্রাইজ:</span> <span class="font-bold text-white">৳১০</span></div>
+                        <div class="flex justify-between"><span class="text-gray-400">বুইয়া বোনাস:</span> <span class="font-bold text-green-400">৳১০০</span></div>
+                        <div class="flex justify-between pt-1"><span class="text-gray-400">বুকড স্লট:</span> <span class="font-bold text-teal-400" id="brDuoCount">0/10</span></div>
+                    </div>
+                    <button id="btnBRDuo" onclick="openBookingModal('BR Duo', 50)" class="w-full btn-red-gradient text-white font-bold py-2 rounded-lg text-xs transition">
+                        রেজিস্ট্রেশন করুন
+                    </button>
+                </div>
+
+                <div class="glass-card bg-[#0f172a]/80 rounded-2xl p-5 border border-gray-800 relative">
+                    <div class="flex justify-between items-center mb-3">
+                        <span class="badge-cyan text-[11px] font-bold px-2.5 py-0.5 rounded-md">BR SQUAD</span>
+                        <span class="text-xs text-emerald-400 font-semibold"><i class="fa-solid fa-circle text-[8px] mr-1"></i>Registration Open</span>
+                    </div>
+                    <div class="space-y-1 text-xs text-gray-300 mb-4 border-b border-gray-800 pb-3">
+                        <div class="flex justify-between"><span class="text-gray-400">এন্ট্রি ফি:</span> <span class="font-bold text-amber-400">৳১২০</span></div>
+                        <div class="flex justify-between"><span class="text-gray-400">প্রতি কিল প্রাইজ:</span> <span class="font-bold text-white">৳১০</span></div>
+                        <div class="flex justify-between"><span class="text-gray-400">বুইয়া বোনাস:</span> <span class="font-bold text-green-400">৳২০০</span></div>
+                        <div class="flex justify-between pt-1"><span class="text-gray-400">বুকড স্লট:</span> <span class="font-bold text-teal-400" id="brSquadCount">0/6</span></div>
+                    </div>
+                    <button id="btnBRSquad" onclick="openBookingModal('BR Squad', 120)" class="w-full btn-red-gradient text-white font-bold py-2 rounded-lg text-xs transition">
+                        রেজিস্ট্রেশন করুন
+                    </button>
+                </div>
+            </div>
+
+            <!-- CS Matches Container (Hidden by default) -->
+            <div id="sectionCS" class="grid grid-cols-1 md:grid-cols-3 gap-6 hidden">
+                <div class="glass-card bg-[#0f172a]/80 rounded-2xl p-5 border border-gray-800 relative">
+                    <div class="flex justify-between items-center mb-3">
+                        <span class="badge-cyan text-[11px] font-bold px-2.5 py-0.5 rounded-md">CS SOLO</span>
+                        <span class="text-xs text-emerald-400 font-semibold"><i class="fa-solid fa-circle text-[8px] mr-1"></i>Registration Open</span>
+                    </div>
+                    <div class="space-y-1 text-xs text-gray-300 mb-4 border-b border-gray-800 pb-3">
+                        <div class="flex justify-between"><span class="text-gray-400">এন্ট্রি ফি:</span> <span class="font-bold text-amber-400">৳৫০</span></div>
+                        <div class="flex justify-between"><span class="text-gray-400">বিজয়ীর পুরস্কার:</span> <span class="font-bold text-green-400">৳৮০ Winner</span></div>
+                        <div class="flex justify-between pt-1"><span class="text-gray-400">বুকড স্লট:</span> <span class="font-bold text-teal-400" id="csSoloCount">0/2</span></div>
+                    </div>
+                    <button id="btnCSSolo" onclick="openBookingModal('CS Solo', 50)" class="w-full btn-red-gradient text-white font-bold py-2 rounded-lg text-xs transition">
+                        রেজিস্ট্রেশন করুন
+                    </button>
+                </div>
+
+                <div class="glass-card bg-[#0f172a]/80 rounded-2xl p-5 border border-gray-800 relative">
+                    <div class="flex justify-between items-center mb-3">
+                        <span class="badge-cyan text-[11px] font-bold px-2.5 py-0.5 rounded-md">CS DUO</span>
+                        <span class="text-xs text-emerald-400 font-semibold"><i class="fa-solid fa-circle text-[8px] mr-1"></i>Registration Open</span>
+                    </div>
+                    <div class="space-y-1 text-xs text-gray-300 mb-4 border-b border-gray-800 pb-3">
+                        <div class="flex justify-between"><span class="text-gray-400">এন্ট্রি ফি:</span> <span class="font-bold text-amber-400">৳১০০</span></div>
+                        <div class="flex justify-between"><span class="text-gray-400">বিজয়ীর পুরস্কার:</span> <span class="font-bold text-green-400">1 Weekly / ৳১৮০</span></div>
+                        <div class="flex justify-between pt-1"><span class="text-gray-400">বুকড টিম:</span> <span class="font-bold text-teal-400" id="csDuoCount">0/2</span></div>
+                    </div>
+                    <button id="btnCSDuo" onclick="openBookingModal('CS Duo', 100)" class="w-full btn-red-gradient text-white font-bold py-2 rounded-lg text-xs transition">
+                        রেজিস্ট্রেশন করুন
+                    </button>
+                </div>
+
+                <div class="glass-card bg-[#0f172a]/80 rounded-2xl p-5 border border-gray-800 relative">
+                    <div class="flex justify-between items-center mb-3">
+                        <span class="badge-cyan text-[11px] font-bold px-2.5 py-0.5 rounded-md">CS SQUAD</span>
+                        <span class="text-xs text-emerald-400 font-semibold"><i class="fa-solid fa-circle text-[8px] mr-1"></i>Registration Open</span>
+                    </div>
+                    <div class="space-y-1 text-xs text-gray-300 mb-4 border-b border-gray-800 pb-3">
+                        <div class="flex justify-between"><span class="text-gray-400">এন্ট্রি ফি:</span> <span class="font-bold text-amber-400">৳২০০</span></div>
+                        <div class="flex justify-between"><span class="text-gray-400">বিজয়ীর পুরস্কার:</span> <span class="font-bold text-green-400">2 Weekly / ৳350+</span></div>
+                        <div class="flex justify-between pt-1"><span class="text-gray-400">বুকড টিম:</span> <span class="font-bold text-teal-400" id="csSquadCount">0/2</span></div>
+                    </div>
+                    <button id="btnCSSquad" onclick="openBookingModal('CS Squad', 200)" class="w-full btn-red-gradient text-white font-bold py-2 rounded-lg text-xs transition">
+                        রেজিস্ট্রেশন করুন
+                    </button>
+                </div>
+            </div>
+
+            <!-- Hall of Fame -->
+            <div class="glass-box rounded-2xl p-6 border border-gray-800 text-center">
+                <h2 class="font-teko text-3xl font-bold tracking-wider text-white mb-4 flex items-center justify-center gap-2">
+                    🏆 HALL OF FAME / পাস্ট উইনারস
+                </h2>
+                <div id="hallOfFameContent" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                    <div class="text-xs text-gray-500 py-6 col-span-full">ডাটা লোড হচ্ছে...</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 2: APPLICATION TRACKER & DIGITAL TICKET -->
+        <div id="tabTracker" class="hidden space-y-6 max-w-xl mx-auto">
+            <div class="glass-box rounded-2xl p-6 border border-gray-800">
+                <h2 class="text-lg font-bold text-white mb-3 flex items-center gap-2">
+                    <i class="fa-solid fa-magnifying-glass text-teal-400"></i> আবেদন স্ট্যাটাস ও ডিজিটাল টিকিট ট্র্যাকার
+                </h2>
+                <div class="flex gap-2 mb-4">
+                    <input type="tel" id="userTrackerPhone" placeholder="আপনার নিবন্ধিত মোবাইল নম্বরটি লিখুন..." class="w-full bg-gray-900 border border-gray-700 rounded-lg px-4 py-2 text-xs text-white focus:outline-none focus:border-teal-400">
+                    <button onclick="searchPlayerTicket()" class="btn-red-gradient text-white font-bold px-5 py-2 rounded-lg text-xs transition">খুঁজুন</button>
+                </div>
+                <div id="ticketDisplay" class="hidden"></div>
+            </div>
+        </div>
+
+        <!-- TAB 3: RULES PAGE -->
+        <div id="tabRules" class="hidden space-y-6 max-w-2xl mx-auto">
+            <div class="glass-box rounded-2xl p-6 border border-gray-800 space-y-4">
+                <h2 class="text-xl font-bold text-white flex items-center gap-2 border-b border-gray-800 pb-3">
+                    <i class="fa-solid fa-book-open text-red-500"></i> টুর্নামেন্ট সাধারণ নিয়মাবলী
+                </h2>
+                <ul class="text-xs text-gray-300 space-y-2.5 list-disc pl-5">
+                    <li>হ্যাক বা কোনো প্রকার আনফেয়ার গেমপ্লে সম্পূর্ণ নিষিদ্ধ।</li>
+                    <li>পেমেন্ট পাঠানোর পর সঠিক TrxID ও পেমেন্ট নম্বর ইনপুট দিন।</li>
+                    <li>ম্যাচ শুরুর ১০-১৫ মিনিট আগে ট্র্যাকার পেজ বা টিকিটে রুম আইডি ও পাসওয়ার্ড প্রকাশ করা হবে।</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- TAB 4: ADMIN DASHBOARD PANEL -->
+        <div id="tabAdmin" class="hidden space-y-6">
+            <div class="flex justify-between items-center bg-gray-900/90 p-4 rounded-xl border border-gray-800">
+                <h2 class="text-lg font-bold text-white flex items-center gap-2">
+                    <i class="fa-solid fa-user-shield text-red-500"></i> এডমিন কন্ট্রোল ড্যাশবোর্ড
+                </h2>
+                <button onclick="executeMatchReset()" class="bg-red-600/20 text-red-400 border border-red-500/40 px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-red-600 hover:text-white transition">
+                    <i class="fa-solid fa-rotate-right mr-1"></i> ১-ক্লিক ম্যাচ রিসেট
+                </button>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- Auto Trx Match -->
+                <div class="glass-box rounded-2xl p-5 border border-gray-800">
+                    <h3 class="text-xs font-bold text-amber-400 mb-3"><i class="fa-solid fa-list-check mr-1"></i> TrxID ইনপুট (অটো-ম্যাচিং)</h3>
+                    <textarea id="adminTrxList" rows="5" placeholder="TrxID গুলো পেস্ট করুন (প্রতি লাইনে একটি)..." class="w-full bg-gray-900 border border-gray-700 rounded-lg p-3 text-xs text-white mb-3 focus:outline-none focus:border-amber-400"></textarea>
+                    <button onclick="runAutoTrxMatch()" class="w-full btn-red-gradient text-white font-bold py-2 rounded-lg text-xs transition">যাচাই ও অটো-কনফার্ম</button>
+                </div>
+
+                <!-- Room ID & Pass Distribution -->
+                <div class="glass-box rounded-2xl p-5 border border-gray-800">
+                    <h3 class="text-xs font-bold text-teal-400 mb-3"><i class="fa-solid fa-key mr-1"></i> রুম আইডি ও পাসওয়ার্ড</h3>
+                    <input type="text" id="adminRoomMatch" placeholder="ম্যাচের নাম (Ex: CS Squad)" class="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-xs text-white mb-2">
+                    <input type="text" id="adminRoomId" placeholder="Room ID..." class="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-xs text-white mb-2">
+                    <input type="text" id="adminRoomPass" placeholder="Room Password..." class="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-xs text-white mb-3">
+                    <button onclick="publishRoomDetails()" class="w-full bg-teal-600 text-black font-bold py-2 rounded-lg text-xs hover:bg-teal-500 transition">পাবলিশ করুন</button>
+                </div>
+
+                <!-- NEW: Hall of Fame Winner Add Form -->
+                <div class="glass-box rounded-2xl p-5 border border-gray-800">
+                    <h3 class="text-xs font-bold text-yellow-400 mb-3"><i class="fa-solid fa-trophy mr-1"></i> উইনার যোগ করুন (Hall of Fame)</h3>
+                    <input type="text" id="winnerMatchName" placeholder="ম্যাচের নাম (Ex: CS Squad Match #1)" class="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-xs text-white mb-2">
+                    <input type="text" id="winnerTeamName" placeholder="বিজয়ী টিম / প্লেয়ারের নাম" class="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-xs text-white mb-2">
+                    <input type="text" id="winnerPrize" placeholder="পুরস্কারের নাম (Ex: ৳২০০ / Weekly Pass)" class="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-xs text-white mb-3">
+                    <button onclick="addWinnerToHallOfFame()" class="w-full bg-yellow-500 text-black font-bold py-2 rounded-lg text-xs hover:bg-yellow-400 transition">উইনার যুক্ত করুন</button>
+                </div>
+            </div>
+
+            <!-- Hall of Fame Admin Control Table -->
+            <div class="glass-box rounded-2xl p-5 border border-yellow-500/30">
+                <h3 class="text-xs font-bold text-yellow-400 mb-3 flex items-center gap-2">
+                    <i class="fa-solid fa-crown"></i> হল অফ ফেমে যুক্ত থাকা বিজয়ীদের তালিকা
+                </h3>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs text-gray-300">
+                        <thead class="bg-gray-900 text-gray-400 border-b border-gray-800">
+                            <tr>
+                                <th class="p-2">ম্যাচ</th>
+                                <th class="p-2">টিম / প্লেয়ার</th>
+                                <th class="p-2">পুরস্কার</th>
+                                <th class="p-2">অ্যাকশন</th>
+                            </tr>
+                        </thead>
+                        <tbody id="adminWinnersTableBody">
+                            <tr>
+                                <td colspan="4" class="p-4 text-center text-gray-500">ডাটা লোড হচ্ছে...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Registrations Live List -->
+            <div class="glass-box rounded-2xl p-5 border border-red-500/30">
+                <h3 class="text-xs font-bold text-red-400 mb-3 flex items-center gap-2">
+                    <i class="fa-solid fa-triangle-exclamation"></i> রেজিস্টার্ড প্লেয়ারদের লাইভ তালিকা
+                </h3>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs text-gray-300">
+                        <thead class="bg-gray-900 text-gray-400 border-b border-gray-800">
+                            <tr>
+                                <th class="p-2">ইউজার নম্বর</th>
+                                <th class="p-2">পেমেন্ট নম্বর</th>
+                                <th class="p-2">TrxID</th>
+                                <th class="p-2">ম্যাচ / স্লট</th>
+                                <th class="p-2">স্ট্যাটাস</th>
+                                <th class="p-2">অ্যাকশন</th>
+                            </tr>
+                        </thead>
+                        <tbody id="unmatchedTableBody">
+                            <tr>
+                                <td colspan="6" class="p-4 text-center text-gray-500">ডাটা লোড হচ্ছে...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Modal: Admin PIN Login -->
+    <div id="adminPinModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="glass-box rounded-2xl max-w-xs w-full p-6 border border-red-500/40 relative">
+            <button onclick="closeAdminModal()" class="absolute top-4 right-4 text-gray-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+            <h3 class="text-sm font-bold text-red-400 mb-3 flex items-center gap-2"><i class="fa-solid fa-lock"></i> অ্যাডমিন সিকিউরিটি PIN</h3>
+            <input type="password" id="adminPinInput" placeholder="PIN দিন (25203208)..." class="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-xs text-white mb-3 focus:outline-none focus:border-red-500">
+            <button onclick="submitAdminPin()" class="w-full btn-red-gradient text-white font-bold py-2 rounded-lg text-xs transition">লগইন</button>
+        </div>
+    </div>
+
+    <!-- Modal: Booking & Payment Submission -->
+    <div id="bookingModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="glass-box rounded-2xl max-w-md w-full p-6 border border-teal-500/30 relative">
+            <button onclick="closeBookingModal()" class="absolute top-4 right-4 text-gray-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+            <h3 class="text-base font-bold text-teal-400 mb-1" id="modalMatchName">Match Registration</h3>
+            <p class="text-xs text-gray-400 mb-4" id="modalMatchFee">Slot Fee: ৳200</p>
+            
+            <form onsubmit="handleRegistrationSubmit(event)" class="space-y-3">
+                <input type="hidden" id="modalTargetMatch">
+                <input type="hidden" id="modalTargetFee">
+                
+                <div>
+                    <label class="text-[11px] text-gray-300">টিম / ইন-গেম নেম (IGN)</label>
+                    <input type="text" id="regTeamName" required placeholder="Ex: Apex Predators" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2 text-xs text-white focus:outline-none focus:border-teal-400">
+                </div>
+                <div>
+                    <label class="text-[11px] text-gray-300">আপনার মোবাইল / হোয়াটসঅ্যাপ নম্বর</label>
+                    <input type="tel" id="regUserPhone" required placeholder="017XXXXXXXX" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2 text-xs text-white focus:outline-none focus:border-teal-400">
+                </div>
+                <div>
+                    <label class="text-[11px] text-gray-300">যে নম্বর থেকে টাকা পাঠিয়েছেন</label>
+                    <input type="tel" id="regSenderPhone" required placeholder="018XXXXXXXX" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2 text-xs text-white focus:outline-none focus:border-teal-400">
+                </div>
+                <div>
+                    <label class="text-[11px] text-gray-300">বিকাশ/নগদ/রকেট TrxID (ট্রানজেকশন আইডি)</label>
+                    <input type="text" id="regTrxId" required placeholder="Ex: 9X78ABC12" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2 text-xs text-white focus:outline-none focus:border-teal-400">
+                </div>
+                <button type="submit" id="btnSubmitForm" class="w-full btn-red-gradient text-white font-bold py-2.5 rounded-lg text-xs transition">আবেদন জমা দিন</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-[#0b0e14] border-t border-gray-800 py-4 text-center text-xs text-gray-500">
+        &copy; 2026 GFF TOURNAMENT HUB | Realtime Firebase Sync Platform.
+    </footer>
+
+    <!-- REALTIME FIREBASE SCRIPT -->
+    <script>
+        // 1. FIREBASE CONFIGURATION
+        const firebaseConfig = {
+            apiKey: "AIzaSyBarcQjGPiHVVIHCFnJYe1rmgsTd78MXOU",
+            authDomain: "ff-tournament-hub-e98a2.firebaseapp.com",
+            projectId: "ff-tournament-hub-e98a2",
+            storageBucket: "ff-tournament-hub-e98a2.firebasestorage.app",
+            messagingSenderId: "309364919951",
+            appId: "1:309364919951:web:14e3ff8fa58d8942da2afa",
+            measurementId: "G-FS1DYVDYKY"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        // Max Limits Config
+        const maxLimits = {
+            'BR Solo': 20, 'BR Duo': 10, 'BR Squad': 6,
+            'CS Solo': 2, 'CS Duo': 2, 'CS Squad': 2
+        };
+
+        let registrations = [];
+        let roomDetails = {};
+        let winnersList = [];
+
+        // 2. REALTIME LISTENERS
+        document.addEventListener('DOMContentLoaded', () => {
+            // Listen to Registrations Collection
+            db.collection('registrations').onSnapshot(snapshot => {
+                registrations = [];
+                snapshot.forEach(doc => {
+                    registrations.push({ docId: doc.id, ...doc.data() });
+                });
+                updateSlotCounters();
+                renderAdminTable();
+            }, err => console.log("Firebase sync error: ", err));
+
+            // Listen to Room Details Collection
+            db.collection('rooms').onSnapshot(snapshot => {
+                roomDetails = {};
+                snapshot.forEach(doc => {
+                    roomDetails[doc.id] = doc.data();
+                });
+            });
+
+            // Listen to Winners Collection (Hall of Fame)
+            db.collection('winners').onSnapshot(snapshot => {
+                winnersList = [];
+                snapshot.forEach(doc => {
+                    winnersList.push({ docId: doc.id, ...doc.data() });
+                });
+                renderHallOfFame();
+                renderAdminWinnersTable();
+            });
+        });
+
+        // 3. ADD WINNER TO HALL OF FAME
+        async function addWinnerToHallOfFame() {
+            const match = document.getElementById('winnerMatchName').value.trim();
+            const team = document.getElementById('winnerTeamName').value.trim();
+            const prize = document.getElementById('winnerPrize').value.trim();
+
+            if (!match || !team || !prize) return alert('সকল ফিল্ড পূরণ করুন!');
+
+            try {
+                await db.collection('winners').add({
+                    match: match,
+                    team: team,
+                    prize: prize,
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                });
+
+                alert('উইনার সফলভাবে যুক্ত করা হয়েছে!');
+                document.getElementById('winnerMatchName').value = '';
+                document.getElementById('winnerTeamName').value = '';
+                document.getElementById('winnerPrize').value = '';
+            } catch (err) {
+                alert('ত্রুটি: ' + err.message);
+            }
+        }
+
+        // RENDER HALL OF FAME ON HOME PAGE
+        function renderHallOfFame() {
+            const container = document.getElementById('hallOfFameContent');
+            if (!container) return;
+
+            if (winnersList.length === 0) {
+                container.innerHTML = `<div class="text-xs text-gray-500 py-6 col-span-full">এখনো কোনো উইনার যুক্ত করা হয়নি।</div>`;
+                return;
+            }
+
+            container.innerHTML = winnersList.map(w => `
+                <div class="glass-box p-4 rounded-xl border border-yellow-500/20 text-center space-y-2 relative overflow-hidden">
+                    <div class="absolute -right-4 -bottom-4 w-16 h-16 bg-yellow-500/10 rounded-full blur-xl"></div>
+                    <div class="inline-block p-2 bg-yellow-500/10 text-yellow-400 rounded-full mb-1">
+                        <i class="fa-solid fa-trophy text-lg"></i>
+                    </div>
+                    <h4 class="text-sm font-bold text-white">${w.team}</h4>
+                    <p class="text-[11px] text-teal-400 font-semibold">${w.match}</p>
+                    <div class="bg-yellow-500/10 text-yellow-300 text-xs py-1 px-3 rounded-lg border border-yellow-500/30 font-bold inline-block">
+                        🎁 ${w.prize}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // RENDER ADMIN WINNERS TABLE
+        function renderAdminWinnersTable() {
+            const tbody = document.getElementById('adminWinnersTableBody');
+            if (!tbody) return;
+
+            if (winnersList.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-gray-500">কোনো উইনারের ডাটা নেই।</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = winnersList.map(w => `
+                <tr class="border-b border-gray-800 hover:bg-gray-900/50">
+                    <td class="p-2 text-teal-400 font-semibold">${w.match}</td>
+                    <td class="p-2 font-bold text-white">${w.team}</td>
+                    <td class="p-2 text-yellow-400">${w.prize}</td>
+                    <td class="p-2">
+                        <button onclick="deleteWinner('${w.docId}')" class="bg-red-600/30 text-red-400 border border-red-500/40 px-2 py-0.5 rounded text-[10px]">
+                            ডিলিট
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        async function deleteWinner(docId) {
+            if (confirm('আপনি কি এই উইনার ডাটাটি মুছে ফেলতে চান?')) {
+                await db.collection('winners').doc(docId).delete();
+            }
+        }
+
+        // 4. SUBMIT REGISTRATION TO FIREBASE
+        async function handleRegistrationSubmit(e) {
+            e.preventDefault();
+            const submitBtn = document.getElementById('btnSubmitForm');
+            submitBtn.disabled = true;
+            submitBtn.innerText = "জমা দেওয়া হচ্ছে...";
+
+            const matchName = document.getElementById('modalTargetMatch').value;
+            const currentCount = registrations.filter(r => r.match === matchName).length;
+            
+            const newReg = {
+                match: matchName,
+                slot: currentCount + 1,
+                fee: document.getElementById('modalTargetFee').value,
+                teamName: document.getElementById('regTeamName').value,
+                userPhone: document.getElementById('regUserPhone').value.trim(),
+                senderPhone: document.getElementById('regSenderPhone').value.trim(),
+                trxId: document.getElementById('regTrxId').value.trim().toUpperCase(),
+                status: 'Pending',
+                timestamp: firebase.firestore.FieldValue.serverTimestamp()
+            };
+
+            try {
+                await db.collection('registrations').add(newReg);
+                alert('আপনার আবেদনটি সফলভাবে জমা হয়েছে!');
+                e.target.reset();
+                closeBookingModal();
+            } catch (err) {
+                alert('আবেদন জমা দিতে সমস্যা হয়েছে: ' + err.message);
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerText = "আবেদন জমা দিন";
+            }
+        }
+
+        // 5. UPDATE UI COUNTERS
+        function updateSlotCounters() {
+            const matches = ['BR Solo', 'BR Duo', 'BR Squad', 'CS Solo', 'CS Duo', 'CS Squad'];
+
+            matches.forEach(m => {
+                const count = registrations.filter(r => r.match === m).length;
+                const max = maxLimits[m];
+
+                let countElemId = '', btnElemId = '';
+                if (m === 'BR Solo') { countElemId = 'brSoloCount'; btnElemId = 'btnBRSolo'; }
+                if (m === 'BR Duo') { countElemId = 'brDuoCount'; btnElemId = 'btnBRDuo'; }
+                if (m === 'BR Squad') { countElemId = 'brSquadCount'; btnElemId = 'btnBRSquad'; }
+                if (m === 'CS Solo') { countElemId = 'csSoloCount'; btnElemId = 'btnCSSolo'; }
+                if (m === 'CS Duo') { countElemId = 'csDuoCount'; btnElemId = 'btnCSDuo'; }
+                if (m === 'CS Squad') { countElemId = 'csSquadCount'; btnElemId = 'btnCSSquad'; }
+
+                const countEl = document.getElementById(countElemId);
+                if (countEl) countEl.innerText = `${count}/${max}`;
+
+                const btnEl = document.getElementById(btnElemId);
+                if (btnEl) {
+                    if (count >= max) {
+                        btnEl.innerText = 'স্লট ফুল (Full)';
+                        btnEl.className = 'w-full bg-red-900/40 text-red-400 border border-red-500/30 font-bold py-2 rounded-lg text-xs cursor-not-allowed';
+                        btnEl.disabled = true;
+                    } else {
+                        btnEl.innerText = 'রেজিস্ট্রেশন করুন';
+                        btnEl.className = 'w-full btn-red-gradient text-white font-bold py-2 rounded-lg text-xs transition';
+                        btnEl.disabled = false;
+                    }
+                }
+            });
+        }
+
+        // Search Ticket
+        function searchPlayerTicket() {
+            const phone = document.getElementById('userTrackerPhone').value.trim();
+            const display = document.getElementById('ticketDisplay');
+            if (!phone) return alert('অনুগ্রহ করে আপনার নম্বর লিখুন');
+
+            const userRegs = registrations.filter(r => r.userPhone === phone);
+            display.classList.remove('hidden');
+
+            if (userRegs.length === 0) {
+                display.innerHTML = `<div class="p-4 bg-red-500/10 border border-red-500/30 rounded-xl text-center text-red-400 text-xs">এই নম্বরে কোনো রেজিস্ট্রেশন খুঁজে পাওয়া যায়নি।</div>`;
+                return;
+            }
+
+            display.innerHTML = userRegs.map(reg => {
+                const room = roomDetails[reg.match] || { id: 'এখনো দেয়া হয়নি', pass: 'এখনো দেয়া হয়নি' };
+                const isConfirmed = reg.status === 'Confirmed';
+
+                return `
+                    <div class="glass-box rounded-xl p-4 border border-teal-500/40 space-y-3 mb-3">
+                        <div class="flex justify-between items-center border-b border-gray-800 pb-2">
+                            <span class="font-bold text-teal-400 text-sm">${reg.match} (Slot #${reg.slot})</span>
+                            <span class="px-2 py-0.5 text-[10px] rounded-full font-bold ${isConfirmed ? 'bg-green-500/20 text-green-400' : 'bg-amber-500/20 text-amber-400'}">
+                                ${reg.status}
+                            </span>
+                        </div>
+                        <div class="grid grid-cols-2 gap-2 text-xs">
+                            <div><span class="text-gray-400">টিম/IGN:</span> <strong class="text-white">${reg.teamName}</strong></div>
+                            <div><span class="text-gray-400">TrxID:</span> <strong class="text-amber-300 font-mono">${reg.trxId}</strong></div>
+                        </div>
+                        <div class="bg-gray-900/90 p-3 rounded-lg border border-gray-800 space-y-1">
+                            <div class="text-[11px] font-bold text-teal-400"><i class="fa-solid fa-door-open"></i> রুম এক্সেস তথ্য:</div>
+                            ${isConfirmed ? `
+                                <div class="flex justify-between text-xs pt-1">
+                                    <span>Room ID: <strong class="text-white font-mono">${room.id}</strong></span>
+                                    <span>Password: <strong class="text-white font-mono">${room.pass}</strong></span>
+                                </div>
+                            ` : `<div class="text-[10px] text-amber-400/80 italic">পেমেন্ট ভেরিফাই হওয়ার পর রুম আইডি ও পাসওয়ার্ড দেখা যাবে।</div>`}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Admin Table Render
+        function renderAdminTable() {
+            const tbody = document.getElementById('unmatchedTableBody');
+            if (!tbody) return;
+
+            if (registrations.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-gray-500">কোনো রেজিস্টার্ড প্লেয়ার পাওয়া যায়নি।</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = registrations.map(r => `
+                <tr class="border-b border-gray-800 hover:bg-gray-900/50">
+                    <td class="p-2">${r.userPhone}</td>
+                    <td class="p-2">${r.senderPhone}</td>
+                    <td class="p-2 font-mono text-amber-400">${r.trxId}</td>
+                    <td class="p-2">${r.match} (#${r.slot})</td>
+                    <td class="p-2">
+                        <span class="px-2 py-0.5 rounded text-[10px] font-bold ${r.status === 'Confirmed' ? 'bg-green-500/20 text-green-400' : 'bg-amber-500/20 text-amber-400'}">
+                            ${r.status}
+                        </span>
+                    </td>
+                    <td class="p-2 flex gap-1">
+                        <button onclick="toggleStatus('${r.docId}', '${r.status}')" class="bg-teal-600/30 text-teal-300 border border-teal-500/40 px-2 py-0.5 rounded text-[10px]">
+                            ${r.status === 'Confirmed' ? 'পেন্ডিং করুন' : 'কনফার্ম করুন'}
+                        </button>
+                        <button onclick="deleteRegistration('${r.docId}')" class="bg-red-600/30 text-red-400 border border-red-500/40 px-2 py-0.5 rounded text-[10px]">
+                            ডিলিট
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // Admin Action Handlers
+        async function toggleStatus(docId, currentStatus) {
+            const newStatus = currentStatus === 'Confirmed' ? 'Pending' : 'Confirmed';
+            await db.collection('registrations').doc(docId).update({ status: newStatus });
+        }
+
+        async function deleteRegistration(docId) {
+            if (confirm('আপনি কি এই রেজিস্ট্রেশনটি মুছে ফেলতে চান?')) {
+                await db.collection('registrations').doc(docId).delete();
+            }
+        }
+
+        async function publishRoomDetails() {
+            const match = document.getElementById('adminRoomMatch').value.trim();
+            const id = document.getElementById('adminRoomId').value.trim();
+            const pass = document.getElementById('adminRoomPass').value.trim();
+
+            if (!match || !id || !pass) return alert('সকল ফিল্ড পূরণ করুন।');
+
+            await db.collection('rooms').doc(match).set({ id, pass });
+            alert(`${match} এর রুম আইডি ও পাসওয়ার্ড পাবলিশ করা হয়েছে!`);
+            
+            document.getElementById('adminRoomMatch').value = '';
+            document.getElementById('adminRoomId').value = '';
+            document.getElementById('adminRoomPass').value = '';
+        }
+
+        async function runAutoTrxMatch() {
+            const rawList = document.getElementById('adminTrxList').value;
+            if (!rawList.trim()) return alert('TrxID পেস্ট করুন।');
+
+            const validTrxArray = rawList.split('\n').map(t => t.trim().toUpperCase()).filter(t => t);
+            let matchedCount = 0;
+
+            const batch = db.batch();
+            registrations.forEach(r => {
+                if (validTrxArray.includes(r.trxId.toUpperCase())) {
+                    const docRef = db.collection('registrations').doc(r.docId);
+                    batch.update(docRef, { status: 'Confirmed' });
+                    matchedCount++;
+                }
+            });
+
+            await batch.commit();
+            alert(`সফলভাবে ${matchedCount} টি ট্রানজেকশন ম্যাচ হয়েছে এবং কনফার্ম করা হয়েছে!`);
+            document.getElementById('adminTrxList').value = '';
+        }
+
+        async function executeMatchReset() {
+            if (confirm('আপনি কি নিশ্চিত যে সকল ডাটা মুছে ফেলতে চান?')) {
+                const snapshot = await db.collection('registrations').get();
+                const batch = db.batch();
+                snapshot.docs.forEach(doc => batch.delete(doc.ref));
+                await batch.commit();
+                alert('সকল রেজিস্ট্রেশন সফলভাবে রিসেট করা হয়েছে।');
+            }
+        }
+
+        // UI Helpers
+        function toggleMode(mode) {
+            document.getElementById('sectionBR').classList.toggle('hidden', mode !== 'BR');
+            document.getElementById('sectionCS').classList.toggle('hidden', mode !== 'CS');
+            document.getElementById('btnToggleBR').className = mode === 'BR' ? 'btn-red-gradient text-white px-6 py-2 rounded-lg text-xs font-bold transition' : 'text-gray-400 hover:text-white px-6 py-2 rounded-lg text-xs font-bold transition';
+            document.getElementById('btnToggleCS').className = mode === 'CS' ? 'btn-red-gradient text-white px-6 py-2 rounded-lg text-xs font-bold transition' : 'text-gray-400 hover:text-white px-6 py-2 rounded-lg text-xs font-bold transition';
+        }
+
+        function switchTab(tab) {
+            ['Home', 'Tracker', 'Rules', 'Admin'].forEach(t => document.getElementById(`tab${t}`).classList.add('hidden'));
+            document.getElementById(`tab${tab.charAt(0).toUpperCase() + tab.slice(1)}`).classList.remove('hidden');
+        }
+
+        function openAdminModal() { document.getElementById('adminPinModal').classList.remove('hidden'); }
+        function closeAdminModal() { document.getElementById('adminPinModal').classList.add('hidden'); }
+        function submitAdminPin() {
+            if (document.getElementById('adminPinInput').value === '25203208') {
+                closeAdminModal();
+                switchTab('admin');
+            } else alert('ভুল PIN!');
+        }
+
+        function openBookingModal(matchTitle, price) {
+            const currentCount = registrations.filter(r => r.match === matchTitle).length;
+            if (currentCount >= (maxLimits[matchTitle] || 10)) return alert('স্লট ফুল হয়ে গেছে!');
+
+            document.getElementById('modalMatchName').innerText = `${matchTitle} Registration`;
+            document.getElementById('modalMatchFee').innerText = `এন্ট্রি ফি: ৳${price}`;
+            document.getElementById('modalTargetMatch').value = matchTitle;
+            document.getElementById('modalTargetFee').value = price;
+            document.getElementById('bookingModal').classList.remove('hidden');
+        }
+
+        function closeBookingModal() { document.getElementById('bookingModal').classList.add('hidden'); }
+    </script>
+</body>
+</html>
